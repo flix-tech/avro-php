@@ -1,6 +1,6 @@
 {
-    "name": "rg/avro-php",
-    "description": "Composer packaging for vanilla Apache Avro, with fixes",
+    "name": "flix-tech/avro-php",
+    "description": "Avro schema encoder/decoder. Fork of rg/avro-php",
     "license": "Apache-2.0",
     "require": {
         "php": ">=5.5.0"
