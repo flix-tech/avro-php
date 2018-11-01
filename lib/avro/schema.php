@@ -1195,6 +1195,7 @@ class AvroRecordSchema extends AvroNamedSchema
       $name = AvroUtil::array_value($field, AvroField::FIELD_NAME_ATTR);
       $type = AvroUtil::array_value($field, AvroSchema::TYPE_ATTR);
       $order = AvroUtil::array_value($field, AvroField::ORDER_ATTR);
+      $doc = AvroUtil::array_value($field, AvroField::DOC_ATTR);
 
       $default = null;
       $has_default = false;
@@ -1218,7 +1219,7 @@ class AvroRecordSchema extends AvroNamedSchema
         $field_schema = self::subparse($type, $default_namespace, $schemata);
 
       $new_field = new AvroField($name, $field_schema, $is_schema_from_schemata,
-                                 $has_default, $default, $order);
+                                 $has_default, $default, $order, $doc);
       $field_names []= $name;
       $fields []= $new_field;
     }
@@ -1323,6 +1324,11 @@ class AvroField extends AvroSchema
   /**
    * @var string
    */
+  const DOC_ATTR = 'doc';
+
+  /**
+   * @var string
+   */
   const ORDER_ATTR = 'order';
 
   /**
@@ -1390,6 +1396,11 @@ class AvroField extends AvroSchema
   private $order;
 
   /**
+   * @var string doc of this field
+   */
+  private $doc;
+
+  /**
    * @var boolean whether or not the AvroNamedSchema of this field is
    *              defined in the AvroNamedSchemata instance
    */
@@ -1406,7 +1417,7 @@ class AvroField extends AvroSchema
    * @todo Check validity of $order value
    */
   public function __construct($name, $schema, $is_type_from_schemata,
-                              $has_default, $default, $order=null)
+                              $has_default, $default, $order=null, $doc=null)
   {
     if (!AvroName::is_well_formed_name($name))
       throw new AvroSchemaParseException('Field requires a "name" attribute');
@@ -1419,6 +1430,7 @@ class AvroField extends AvroSchema
       $this->default = $default;
     $this->check_order_value($order);
     $this->order = $order;
+    $this->doc = $doc;
   }
 
   /**
@@ -1436,6 +1448,9 @@ class AvroField extends AvroSchema
 
     if ($this->order)
       $avro[AvroField::ORDER_ATTR] = $this->order;
+
+    if ($this->doc)
+      $avro[AvroField::DOC_ATTR] = $this->doc;
 
     return $avro;
   }
