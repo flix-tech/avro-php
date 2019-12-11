@@ -94,9 +94,9 @@ class AvroProtocolMessage
     $this->request = new AvroRecordSchema(new AvroName($name, null, $protocol->namespace), null, $avro['request'], $protocol->schemata, AvroSchema::REQUEST_SCHEMA);
 
     if (array_key_exists('response', $avro)) {
-      $this->response = $protocol->schemata->schema_by_name(new AvroName($avro['request'], $protocol->namespace, $protocol->namespace));
+      $this->response = $protocol->schemata->schema_by_name(new AvroName($avro['response'], $protocol->namespace, $protocol->namespace));
       if ($this->response == null)
-        $this->response = new AvroPrimitiveSchema($avro['request']);
+        $this->response = new AvroPrimitiveSchema($avro['response']);
     }
   }
 }
