@@ -1286,6 +1286,9 @@ class AvroRecordSchema extends AvroNamedSchema
       $type = AvroUtil::array_value($field, AvroSchema::TYPE_ATTR);
       $order = AvroUtil::array_value($field, AvroField::ORDER_ATTR);
       $doc = AvroUtil::array_value($field, AvroSchema::DOC_ATTR);
+      $logical_type = AvroUtil::array_value($field, AvroSchema::LOGICAL_TYPE_ATTR);
+      $precision = AvroUtil::array_value($field, AvroField::PRECISION_ATTR);
+      $scale = AvroUtil::array_value($field, AvroField::SCALE_ATTR);
 
       $default = null;
       $has_default = false;
@@ -1309,7 +1312,8 @@ class AvroRecordSchema extends AvroNamedSchema
         $field_schema = self::subparse($type, $default_namespace, $schemata);
 
       $new_field = new AvroField($name, $field_schema, $is_schema_from_schemata,
-                                 $has_default, $default, $order, $doc);
+                                 $has_default, $default, $order, $doc,
+                                 $logical_type, $precision, $scale);
       $field_names []= $name;
       $fields []= $new_field;
     }
@@ -1422,6 +1426,16 @@ class AvroField extends AvroSchema
   /**
    * @var string
    */
+  const PRECISION_ATTR = 'precision';
+
+  /**
+   * @var string
+   */
+  const SCALE_ATTR = 'scale';
+
+  /**
+   * @var string
+   */
   const ASC_SORT_ORDER = 'ascending';
 
   /**
@@ -1495,19 +1509,39 @@ class AvroField extends AvroSchema
   private $doc;
 
   /**
+   * @var string logical type of this field
+   */
+  private $logical_type;
+
+  /**
+   * @var int precision of the logical type
+   */
+  private $precision;
+
+  /**
+   * @var int scale of the logical type
+   */
+  private $scale;
+
+  /**
    * @param string $name
    * @param AvroSchema $schema
    * @param boolean $is_type_from_schemata
-   * @param $has_default
+   * @param boolean $has_default
    * @param string $default
    * @param string $order
+   * @param string $doc
+   * @param string $logical_type
+   * @param int $precision
+   * @param int $scale
    * @throws AvroSchemaParseException
    * @internal param string $type
    * @todo Check validity of $default value
    * @todo Check validity of $order value
    */
   public function __construct($name, $schema, $is_type_from_schemata,
-                              $has_default, $default, $order=null, $doc=null)
+                              $has_default, $default, $order=null, $doc=null,
+                              $logical_type=null, $precision=null, $scale=null)
   {
     if (!AvroName::is_well_formed_name($name))
       throw new AvroSchemaParseException('Field requires a "name" attribute');
@@ -1521,6 +1555,9 @@ class AvroField extends AvroSchema
     $this->check_order_value($order);
     $this->order = $order;
     $this->doc = $doc;
+    $this->logical_type = $logical_type;
+    $this->precision = $precision;
+    $this->scale = $scale;
   }
 
   /**
@@ -1541,6 +1578,15 @@ class AvroField extends AvroSchema
 
     if ($this->doc)
       $avro[AvroSchema::DOC_ATTR] = $this->doc;
+
+    if ($this->logical_type)
+      $avro[AvroSchema::LOGICAL_TYPE_ATTR] = $this->logical_type;
+
+    if ($this->precision)
+      $avro[AvroField::PRECISION_ATTR] = $this->precision;
+
+    if ($this->scale)
+      $avro[AvroField::SCALE_ATTR] = $this->scale;
 
     return $avro;
   }
