@@ -725,7 +725,7 @@ class AvroIODatumReader
                              $readers_fields[$writers_field->name()]->type(),
                              $decoder);
       else
-        $this->skip_data($type, $decoder);
+        self::skip_data($type, $decoder);
     }
     // Fill in default values
     if (count($readers_fields) > count($record))
@@ -816,7 +816,7 @@ class AvroIODatumReader
    * @return
    * @throws AvroException
    */
-  private function skip_data($writers_schema, $decoder)
+  public static function skip_data($writers_schema, $decoder)
   {
     switch ($writers_schema->type())
     {
@@ -1029,6 +1029,58 @@ class AvroIOBinaryDecoder
   public function skip_bytes() { return $this->skip($this->read_long()); }
 
   public function skip_string() { return $this->skip_bytes(); }
+
+  public function skip_fixed($writers_schema, AvroIOBinaryDecoder $decoder)
+  {
+    $decoder->skip($writers_schema->size());
+  }
+
+  public function skip_enum($writers_schema, AvroIOBinaryDecoder $decoder)
+  {
+    $decoder->skip_int();
+  }
+
+  public function skip_union($writers_schema, AvroIOBinaryDecoder $decoder)
+  {
+    $index = $decoder->read_long();
+    AvroIODatumReader::skip_data($writers_schema->schema_by_index($index), $decoder);
+  }
+
+  public function skip_record($writers_schema, AvroIOBinaryDecoder $decoder)
+  {
+    foreach ($writers_schema->fields() as $f) {
+      AvroIODatumReader::skip_data($f->type(), $decoder);
+    }
+  }
+
+  public function skip_array($writers_schema, AvroIOBinaryDecoder $decoder)
+  {
+    $block_count = $decoder->read_long();
+    while (0 !== $block_count) {
+      if ($block_count < 0) {
+        $decoder->skip($this->read_long());
+      }
+      for ($i = 0; $i < $block_count; $i++) {
+        AvroIODatumReader::skip_data($writers_schema->items(), $decoder);
+      }
+      $block_count = $decoder->read_long();
+    }
+  }
+
+  public function skip_map($writers_schema, AvroIOBinaryDecoder $decoder)
+  {
+    $block_count = $decoder->read_long();
+    while (0 !== $block_count) {
+      if ($block_count < 0) {
+        $decoder->skip($this->read_long());
+      }
+      for ($i = 0; $i < $block_count; $i++) {
+        $decoder->skip_string();
+        AvroIODatumReader::skip_data($writers_schema->values(), $decoder);
+      }
+      $block_count = $decoder->read_long();
+    }
+  }
 
   /**
    * @param int $len count of bytes to skip
