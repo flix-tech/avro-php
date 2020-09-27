@@ -9,6 +9,16 @@ php:
 - '7.4'
 
 before_script:
+- cd /tmp
+- git clone --recursive --depth=1 https://github.com/kjdev/php-ext-snappy.git
+- cd php-ext-snappy
+- export CXXFLAGS=-std=c++11
+- phpize
+- ./configure
+- make
+- make install
+- echo "extension = snappy.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+- cd $TRAVIS_BUILD_DIR
 - composer self-update
 - composer update
 
