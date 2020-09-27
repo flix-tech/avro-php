@@ -20,27 +20,29 @@
 
 require_once('test_helper.php');
 
-$data_file = join(DIRECTORY_SEPARATOR, array(AVRO_BUILD_DATA_DIR, 'php.avro'));
-$datum = array('nullField' => null,
-               'boolField' => true,
-               'intField' => -42,
-               'longField' => (int) 2147483650,
-               'floatField' => 1234.0,
-               'doubleField' => -5432.6,
-               'stringField' => 'hello avro',
-               'bytesField' => "\x16\xa6",
-               'arrayField' => array(5.0, -6.0, -10.5),
-               'mapField' => array('a' => array('label' => 'a'),
-                                   'c' => array('label' => '3P0')),
-               'unionField' => 14.5,
-               'enumField' => 'C',
-               'fixedField' => '1019181716151413',
-               'recordField' => array('label' => 'blah',
-                                      'children' => array(
-                                        array('label' => 'inner',
-                                              'children' => array()))));
+foreach (AvroDataIO::valid_codecs() as $codec) {
+  $data_file = join(DIRECTORY_SEPARATOR, array(AVRO_BUILD_DATA_DIR, sprintf('php-%s.avro', $codec)));
+  $datum = array('nullField' => null,
+                 'boolField' => true,
+                 'intField' => -42,
+                 'longField' => (int) 2147483650,
+                 'floatField' => 1234.0,
+                 'doubleField' => -5432.6,
+                 'stringField' => 'hello avro',
+                 'bytesField' => "\x16\xa6",
+                 'arrayField' => array(5.0, -6.0, -10.5),
+                 'mapField' => array('a' => array('label' => 'a'),
+                                     'c' => array('label' => '3P0')),
+                 'unionField' => 14.5,
+                 'enumField' => 'C',
+                 'fixedField' => '1019181716151413',
+                 'recordField' => array('label' => 'blah',
+                                        'children' => array(
+                                          array('label' => 'inner',
+                                                'children' => array()))));
 
-$schema_json = file_get_contents(AVRO_INTEROP_SCHEMA);
-$io_writer = AvroDataIO::open_file($data_file, 'w', $schema_json);
-$io_writer->append($datum);
-$io_writer->close();
+  $schema_json = file_get_contents(AVRO_INTEROP_SCHEMA);
+  $io_writer = AvroDataIO::open_file($data_file, 'w', $schema_json);
+  $io_writer->append($datum);
+  $io_writer->close();
+}
