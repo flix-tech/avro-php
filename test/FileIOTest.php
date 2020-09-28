@@ -48,6 +48,17 @@ class FileIOTest extends PHPUnit_Framework_TestCase
         return $reader->data();
     }
 
+    private function readIterator()
+    {
+        $fileName = $this->getFileName();
+        $reader = AvroDataIO::open_file($fileName);
+        $data = [];
+        foreach ($reader->data_iterator() as $row) {
+            $data[] = $row;
+        }
+        return $data;
+    }
+
     public function testReading()
     {
         $expected = [
@@ -62,7 +73,12 @@ class FileIOTest extends PHPUnit_Framework_TestCase
                 'favorite_numbers' => [],
             ]
         ];
+
+        // Classic loading.
         $this->assertEquals($expected, $this->read());
+
+        // Iterator loading.
+        $this->assertEquals($expected, $this->readIterator());
     }
 
     /**

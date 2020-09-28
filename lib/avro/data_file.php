@@ -293,7 +293,6 @@ class AvroDataIOReader
    * @return array of data from object container.
    * @throws AvroDataIOException
    * @throws AvroIOException
-   * @internal Would be nice to implement data() as an iterator, I think
    */
   public function data()
   {
@@ -309,32 +308,68 @@ class AvroDataIOReader
           if ($this->is_eof())
             break;
 
-        $length = $this->read_block_header();
-        $decoder = $this->decoder;
-        if ($this->codec == AvroDataIO::DEFLATE_CODEC) {
-          if (!function_exists('gzinflate')) {
-            throw new AvroDataIOException('"gzinflate" function not available, "zlib" extension required.');
-          }
-          $compressed = $decoder->read($length);
-          $datum = gzinflate($compressed);
-          $decoder = new AvroIOBinaryDecoder(new AvroStringIO($datum));
-        } elseif ($this->codec == AvroDataIO::SNAPPY_CODEC) {
-          if (!function_exists('snappy_uncompress')) {
-            throw new AvroDataIOException('"snappy_uncompress" function not available, "snappy" extension required.');
-          }
-          $compressed = $decoder->read($length-4);
-          $datum = snappy_uncompress($compressed);
-          $crc32 = unpack('N', $decoder->read(4));
-          if ($crc32[1] != crc32($datum)) {
-            throw new AvroDataIOException('Invalid CRC32 checksum.');
-          }
-          $decoder = new AvroIOBinaryDecoder(new AvroStringIO($datum));
-        }
+        $decoder = $this->apply_codec($this->decoder, $this->codec);
       }
-      $data []= $this->datum_reader->read($decoder);
+      $data[] = $this->datum_reader->read($decoder);
       $this->block_count -= 1;
     }
     return $data;
+  }
+
+  /**
+   * @throws AvroDataIOException
+   * @throws AvroIOException
+   */
+  public function data_iterator()
+  {
+    while (true)
+    {
+      if (0 == $this->block_count)
+      {
+        if ($this->is_eof())
+          break;
+
+        if ($this->skip_sync())
+          if ($this->is_eof())
+            break;
+
+        $decoder = $this->apply_codec($this->decoder, $this->codec);
+      }
+      yield $this->datum_reader->read($decoder);
+      $this->block_count -= 1;
+    }
+  }
+
+  /**
+   * @param AvroIOBinaryDecoder $decoder
+   * @param string $codec
+   * @return AvroIOBinaryDecoder
+   * @throws AvroDataIOException
+   * @throws AvroIOException
+   */
+  protected function apply_codec($decoder, $codec)
+  {
+    $length = $this->read_block_header();
+    if ($codec == AvroDataIO::DEFLATE_CODEC) {
+      if (!function_exists('gzinflate')) {
+        throw new AvroDataIOException('"gzinflate" function not available, "zlib" extension required.');
+      }
+      $compressed = $decoder->read($length);
+      $datum = gzinflate($compressed);
+      $decoder = new AvroIOBinaryDecoder(new AvroStringIO($datum));
+    } elseif ($codec == AvroDataIO::SNAPPY_CODEC) {
+      if (!function_exists('snappy_uncompress')) {
+        throw new AvroDataIOException('"snappy_uncompress" function not available, "snappy" extension required.');
+      }
+      $compressed = $decoder->read($length-4);
+      $datum = snappy_uncompress($compressed);
+      $crc32 = unpack('N', $decoder->read(4));
+      if ($crc32[1] != crc32($datum)) {
+        throw new AvroDataIOException('Invalid CRC32 checksum.');
+      }
+      $decoder = new AvroIOBinaryDecoder(new AvroStringIO($datum));
+    }
+    return $decoder;
   }
 
   /**
