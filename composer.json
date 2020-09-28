@@ -9,7 +9,9 @@
         "phpunit/phpunit": "^5.0"
     },
     "suggest": {
-        "ext-gmp": "Large integer support for 32-bit platforms."
+        "ext-gmp": "Large integer support for 32-bit platforms.",
+        "ext-zlib": "Zlib support for Deflate codec.",
+        "ext-snappy": "Snappy support for Snappy codec (mainly Google)."
     },
     "autoload": {
         "classmap": ["lib/"]

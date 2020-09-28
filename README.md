@@ -8,6 +8,8 @@ Requirements
  * PHP >= 7.1
  * On 32-bit platforms, the [GMP PHP extension](http://php.net/gmp)
  * For testing, [PHPUnit](http://www.phpunit.de/)
+ * For Deflate codec, [Zlib](https://www.php.net/zlib)
+ * For Snappy codec, [Snappy](http://google.github.io/snappy/)
 
 Both GMP and PHPUnit are often available via package management
 systems as `php5-gmp` and `phpunit`, respectively.
