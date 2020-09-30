@@ -301,7 +301,8 @@ JSON;
     $dw->close();
 
     foreach (array('fixed', 'enum', 'record', 'error',
-                   'array', 'map', 'union') as $s) {
+                   'array', 'map', 'union') as $s)
+    {
       $readers_schema = json_decode($writers_schema, true);
       $dr = AvroDataIO::open_file($data_file, 'r', json_encode($readers_schema));
       foreach ($dr->data() as $idx => $obj)
@@ -315,6 +316,7 @@ JSON;
       $dr->close();
 
     }
+
   }
 
 }
