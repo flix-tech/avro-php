@@ -225,29 +225,31 @@ class DataFileTest extends PHPUnit_Framework_TestCase
 
     $writer_schema = <<<JSON
 { "type": "record",
-"name": "User",
-"fields" : [
-    {"name": "username", "type": "string"},
-    {"name": "age", "type": "int"},
-    {"name": "verified", "type": "boolean", "default": "false"}
-    ]}
+  "name": "User",
+  "fields" : [
+      {"name": "username", "type": "string"},
+      {"name": "age", "type": "int"},
+      {"name": "verified", "type": "boolean", "default": "false"}
+      ]}
 JSON;
     $data = array(array('username' => 'john', 'age' => 25, 'verified' => true),
-      array('username' => 'ryan', 'age' => 23, 'verified' => false));
+                  array('username' => 'ryan', 'age' => 23, 'verified' => false));
     $dw = AvroDataIO::open_file($data_file, 'w', $writer_schema, $codec);
-    foreach ($data as $datum) {
+    foreach ($data as $datum)
+    {
       $dw->append($datum);
     }
     $dw->close();
     $reader_schema = <<<JSON
-    { "type": "record",
-      "name": "User",
-      "fields" : [
-    {"name": "username", "type": "string"}
-    ]}
+      { "type": "record",
+        "name": "User",
+        "fields" : [
+      {"name": "username", "type": "string"}
+      ]}
 JSON;
     $dr = AvroDataIO::open_file($data_file, 'r', $reader_schema);
-    foreach ($dr->data() as $index => $record) {
+    foreach ($dr->data() as $index => $record)
+    {
       $this->assertEquals($data[$index]['username'], $record['username']);
     }
   }
@@ -261,49 +263,51 @@ JSON;
 
     $writers_schema = <<<JSON
 { "type": "record",
-"name": "something",
-"fields": [
-  {"name": "something_fixed", "type": {"name": "inner_fixed",
-                                       "type": "fixed", "size": 3}},
-  {"name": "something_enum", "type": {"name": "inner_enum",
-                                      "type": "enum",
-                                      "symbols": ["hello", "goodbye"]}},
-  {"name": "something_array", "type": {"type": "array", "items": "int"}},
-  {"name": "something_map", "type": {"type": "map", "values": "int"}},
-  {"name": "something_record", "type": {"name": "inner_record",
-                                        "type": "record",
-                                        "fields": [
-                                          {"name": "inner", "type": "int"}
-                                        ]}},
-  {"name": "username", "type": "string"}
+  "name": "something",
+  "fields": [
+    {"name": "something_fixed", "type": {"name": "inner_fixed",
+                                         "type": "fixed", "size": 3}},
+    {"name": "something_enum", "type": {"name": "inner_enum",
+                                        "type": "enum",
+                                        "symbols": ["hello", "goodbye"]}},
+    {"name": "something_array", "type": {"type": "array", "items": "int"}},
+    {"name": "something_map", "type": {"type": "map", "values": "int"}},
+    {"name": "something_record", "type": {"name": "inner_record",
+                                          "type": "record",
+                                          "fields": [
+                                            {"name": "inner", "type": "int"}
+                                          ]}},
+    {"name": "username", "type": "string"}
 ]}
 JSON;
 
     $data = array(array("username" => "john",
-      "something_fixed" => "foo",
-      "something_enum" => "hello",
-      "something_array" => array(1, 2, 3),
-      "something_map" => array("a" => 1, "b" => 2),
-      "something_record" => array("inner" => 2),
-      "something_error" => array("code" => 403)),
-      array("username" => "ryan",
-        "something_fixed" => "bar",
-        "something_enum" => "goodbye",
-        "something_array" => array(1, 2, 3),
-        "something_map" => array("a" => 2, "b" => 6),
-        "something_record" => array("inner" => 1),
-        "something_error" => array("code" => 401)));
+                        "something_fixed" => "foo",
+                        "something_enum" => "hello",
+                        "something_array" => array(1,2,3),
+                        "something_map" => array("a" => 1, "b" => 2),
+                        "something_record" => array("inner" => 2),
+                        "something_error" => array("code" => 403)),
+                  array("username" => "ryan",
+                        "something_fixed" => "bar",
+                        "something_enum" => "goodbye",
+                        "something_array" => array(1,2,3),
+                        "something_map" => array("a" => 2, "b" => 6),
+                        "something_record" => array("inner" => 1),
+                        "something_error" => array("code" => 401)));
     $dw = AvroDataIO::open_file($data_file, 'w', $writers_schema, $codec);
     foreach ($data as $datum)
       $dw->append($datum);
     $dw->close();
 
     foreach (array('fixed', 'enum', 'record', 'error',
-               'array', 'map', 'union') as $s) {
+                   'array', 'map', 'union') as $s) {
       $readers_schema = json_decode($writers_schema, true);
       $dr = AvroDataIO::open_file($data_file, 'r', json_encode($readers_schema));
-      foreach ($dr->data() as $idx => $obj) {
-        foreach ($readers_schema['fields'] as $field) {
+      foreach ($dr->data() as $idx => $obj)
+      {
+        foreach ($readers_schema['fields'] as $field)
+        {
           $field_name = $field['name'];
           $this->assertEquals($data[$idx][$field_name], $obj[$field_name]);
         }
