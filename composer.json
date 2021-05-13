@@ -1,7 +1,10 @@
 {
-    "name": "flix-tech/avro-php",
+    "name": "instapage/avro-php",
     "description": "Avro schema encoder/decoder. Fork of rg/avro-php",
     "license": "Apache-2.0",
+    "replace": {
+        "flix-tech/avro-php": "^4.1.0"
+    },
     "require": {
         "php": ">=7.1"
     },
