@@ -71,7 +71,7 @@ class SchemaTest extends PHPUnit_Framework_TestCase
              as $type)
     {
       $examples []= new SchemaExample(sprintf('"%s"', $type), true);
-      $examples []= new SchemaExample(sprintf('{"type": "%s"}', $type), true, sprintf('"%s"', $type));
+      $examples []= new SchemaExample(sprintf('{"type": "%s"}', $type), true, sprintf('{"type":"%s"}', $type));
     }
     return $examples;
   }
