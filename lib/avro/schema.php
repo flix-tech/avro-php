@@ -18,7 +18,7 @@
  */
 
 /**
- * Avro Schema and and Avro Schema support classes.
+ * Avro Schema and Avro Schema support classes.
  * @package Avro
  */
 
@@ -49,7 +49,7 @@
  */
 
 /**
- * Exceptions associated with parsing JSON schema represenations
+ * Exceptions associated with parsing JSON schema representations
  * @package Avro
  */
 class AvroSchemaParseException extends AvroException {};
@@ -330,7 +330,7 @@ class AvroSchema
       $extra_attributes = array_diff_key($avro, array_flip(self::$reserved_attrs));
 
       if (self::is_primitive_type($type))
-        return new AvroPrimitiveSchema($type, $logical_type, $extra_attributes);
+        return new AvroPrimitiveSchema($type, $logical_type, $extra_attributes, true);
 
       elseif (self::is_named_type($type))
       {
@@ -562,17 +562,22 @@ class AvroSchema
 class AvroPrimitiveSchema extends AvroSchema
 {
 
+  private $serialize_type_attribute;
+
   /**
    * @param string $type the primitive schema type name
    * @param string $logical_type a schema logical type name
    * @param array $extra_attributes extra attributes defined on the schema
+   * @param boolean $serialize_type_attribute serialize type attribute in primitive schema
    * @throws AvroSchemaParseException if the given $type is not a
    *         primitive schema type name
    */
-  public function __construct($type, $logical_type=null, $extra_attributes=array())
+  public function __construct($type, $logical_type=null, $extra_attributes=array(), $serialize_type_attribute=false)
   {
-    if (self::is_primitive_type($type))
+    if (self::is_primitive_type($type)) {
+      $this->serialize_type_attribute = $serialize_type_attribute;
       return parent::__construct($type, $logical_type, $extra_attributes);
+    }
     throw new AvroSchemaParseException(
       sprintf('%s is not a valid primitive type.', $type));
   }
@@ -586,6 +591,10 @@ class AvroPrimitiveSchema extends AvroSchema
           return array_merge(parent::to_avro(), array(
               self::LOGICAL_TYPE_ATTR => $this->logical_type
           ), $this->extra_attributes ?: array());
+      }
+
+      if (true === $this->serialize_type_attribute) {
+          return array(self::TYPE_ATTR => $this->type);
       }
 
       return $this->type;
@@ -1073,7 +1082,7 @@ class AvroNamedSchemata
 
   public function list_schemas() {
     var_export($this->schemata);
-    foreach($this->schemata as $sch) 
+    foreach($this->schemata as $sch)
       print('Schema '.$sch->__toString()."\n");
   }
 
