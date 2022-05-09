@@ -251,7 +251,10 @@ class AvroIODatumWriter
   private function write_record($writers_schema, $datum, $encoder)
   {
     foreach ($writers_schema->fields() as $field)
-      $this->write_data($field->type(), $datum[$field->name()], $encoder);
+    {
+        $value = isset($datum[$field->name()]) ? $datum[$field->name()] : $field->default_value();
+        $this->write_data($field->type(), $value, $encoder);
+    }
   }
 
   /**#@-*/
@@ -1105,4 +1108,3 @@ class AvroIOBinaryDecoder
     return $this->io->seek($offset, $whence);
   }
 }
-
