@@ -70,7 +70,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                    'bytes', 'string')
              as $type)
     {
-      $examples []= new SchemaExample(sprintf('"%s"', $type), true);
+      $examples []= new SchemaExample(sprintf('"%s"', $type), true, sprintf('{"type":"%s"}', $type));
       $examples []= new SchemaExample(sprintf('{"type": "%s"}', $type), true, sprintf('{"type":"%s"}', $type));
     }
     return $examples;
@@ -84,21 +84,21 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                                         self::make_primitive_examples());
 
     $array_examples = array(
-      new SchemaExample('{"type": "array", "items": "long"}', true),
+      new SchemaExample('{"type": "array", "items": "long"}', true, '{"type":"array","items":{"type":"long"}}'),
       new SchemaExample('
     {"type": "array",
      "items": {"type": "enum", "name": "Test", "symbols": ["A", "B"]}}
-    ', true));
+    ', true, '{"type":"array","items":{"type":"enum","name":"Test","symbols":["A","B"]}}'));
 
     $map_examples = array(
-      new SchemaExample('{"type": "map", "values": "long"}', true),
+      new SchemaExample('{"type": "map", "values": "long"}', true, '{"type":"map","values":{"type":"long"}}'),
       new SchemaExample('
     {"type": "map",
      "values": {"type": "enum", "name": "Test", "symbols": ["A", "B"]}}
-    ', true));
+    ', true, ));
 
     $union_examples = array(
-      new SchemaExample('["string", "null", "long"]', true),
+      new SchemaExample('["string", "null", "long"]', true, '[{"type":"string"},{"type":"null"},{"type":"long"}]'),
       new SchemaExample('["null", "null"]', false),
       new SchemaExample('["long", "long"]', false),
       new SchemaExample('
@@ -111,7 +111,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
       new SchemaExample('["long",
                           {"type": "array", "items": "long"},
                           {"type": "map", "values": "long"},
-                          "int"]', true),
+                          "int"]', true, '[{"type":"long"},{"type":"array","items":{"type":"long"}},{"type":"map","values":{"type":"long"}},{"type":"int"}]'),
       new SchemaExample('["long",
                           ["string", "null"],
                           "int"]', false),
@@ -127,7 +127,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                           {"name": "foo", "type":"fixed",
                            "size":16},
                           {"name": "baz", "type":"enum", "symbols":["A", "B", "C"]}
-                         ]', true, '["null","boolean","int","long","float","double","string","bytes",{"type":"array","items":"int"},{"type":"map","values":"int"},{"type":"record","name":"bar","fields":[{"name":"label","type":"string"}]},{"type":"fixed","name":"foo","size":16},{"type":"enum","name":"baz","symbols":["A","B","C"]}]'),
+                         ]', true, '[{"type":"null"},{"type":"boolean"},{"type":"int"},{"type":"long"},{"type":"float"},{"type":"double"},{"type":"string"},{"type":"bytes"},{"type":"array","items":{"type":"int"}},{"type":"map","values":{"type":"int"}},{"type":"record","name":"bar","fields":[{"name":"label","type":{"type":"string"}}]},{"type":"fixed","name":"foo","size":16},{"type":"enum","name":"baz","symbols":["A","B","C"]}]'),
       new SchemaExample('
     [{"name":"subtract", "namespace":"com.example",
       "type":"record",
@@ -138,7 +138,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
       "fields":[{"name":"quotient", "type":"int"},
                 {"name":"dividend", "type":"int"}]},
       {"type": "array", "items": "string"}]
-    ', true, '[{"type":"record","name":"subtract","namespace":"com.example","fields":[{"name":"minuend","type":"int"},{"name":"subtrahend","type":"int"}]},{"type":"record","name":"divide","namespace":"com.example","fields":[{"name":"quotient","type":"int"},{"name":"dividend","type":"int"}]},{"type":"array","items":"string"}]'),
+    ', true, '[{"type":"record","name":"subtract","namespace":"com.example","fields":[{"name":"minuend","type":{"type":"int"}},{"name":"subtrahend","type":{"type":"int"}}]},{"type":"record","name":"divide","namespace":"com.example","fields":[{"name":"quotient","type":{"type":"int"}},{"name":"dividend","type":{"type":"int"}}]},{"type":"array","items":{"type":"string"}}]'),
       );
 
     $fixed_examples = array(
@@ -223,32 +223,32 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
      "name": "Test",
      "fields": [{"name": "f",
                  "type": "long"}]}
-    ', true);
+    ', true, '{"type":"record","name":"Test","fields":[{"name":"f","type":{"type":"long"}}]}');
     $record_examples []= new SchemaExample('
     {"type": "error",
      "name": "Test",
      "fields": [{"name": "f",
                  "type": "long"}]}
-    ', true);
+    ', true, '{"type":"error","name":"Test","fields":[{"name":"f","type":{"type":"long"}}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "Node",
      "fields": [{"name": "label", "type": "string"},
                 {"name": "children",
                  "type": {"type": "array", "items": "Node"}}]}
-    ', true);
+    ', true, '{"type":"record","name":"Node","fields":[{"name":"label","type":{"type":"string"}},{"name":"children","type":{"type":"array","items":"Node"}}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "ListLink",
      "fields": [{"name": "car", "type": "int"},
                 {"name": "cdr", "type": "ListLink"}]}
-    ', true);
+    ', true, '{"type":"record","name":"ListLink","fields":[{"name":"car","type":{"type":"int"}},{"name":"cdr","type":"ListLink"}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "Lisp",
      "fields": [{"name": "value",
                  "type": ["null", "string"]}]}
-    ', true);
+    ', true, '{"type":"record","name":"Lisp","fields":[{"name":"value","type":[{"type":"null"},{"type":"string"}]}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "Lisp",
@@ -258,7 +258,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                            "name": "Cons",
                            "fields": [{"name": "car", "type": "string"},
                                       {"name": "cdr", "type": "string"}]}]}]}
-    ', true);
+    ', true, '{"type":"record","name":"Lisp","fields":[{"name":"value","type":[{"type":"null"},{"type":"string"},{"type":"record","name":"Cons","fields":[{"name":"car","type":{"type":"string"}},{"name":"cdr","type":{"type":"string"}}]}]}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "Lisp",
@@ -268,7 +268,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                            "name": "Cons",
                            "fields": [{"name": "car", "type": "Lisp"},
                                       {"name": "cdr", "type": "Lisp"}]}]}]}
-    ', true);
+    ', true, '{"type":"record","name":"Lisp","fields":[{"name":"value","type":[{"type":"null"},{"type":"string"},{"type":"record","name":"Cons","fields":[{"name":"car","type":"Lisp"},{"name":"cdr","type":"Lisp"}]}]}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "HandshakeRequest",
@@ -277,7 +277,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                  "type": {"type": "fixed", "name": "MD5", "size": 16}},
                 {"name": "meta",
                  "type": ["null", {"type": "map", "values": "bytes"}]}]}
-    ', true);
+    ', true, '{"type":"record","name":"HandshakeRequest","namespace":"org.apache.avro.ipc","fields":[{"name":"clientHash","type":{"type":"fixed","name":"MD5","size":16}},{"name":"meta","type":[{"type":"null"},{"type":"map","values":{"type":"bytes"}}]}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "HandshakeRequest",
@@ -288,7 +288,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                 {"name": "serverHash", "type": "MD5"},
                 {"name": "meta",
                  "type": ["null", {"type": "map", "values": "bytes"}]}]}
-    ', true);
+    ', true, '{"type":"record","name":"HandshakeRequest","namespace":"org.apache.avro.ipc","fields":[{"name":"clientHash","type":{"type":"fixed","name":"MD5","size":16}},{"name":"clientProtocol","type":[{"type":"null"},{"type":"string"}]},{"name":"serverHash","type":"MD5"},{"name":"meta","type":[{"type":"null"},{"type":"map","values":{"type":"bytes"}}]}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "HandshakeResponse",
@@ -304,7 +304,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                 {"name": "meta",
                  "type": ["null", {"type": "map", "values": "bytes"}]}]}
     ', true,
-     '{"type":"record","name":"HandshakeResponse","namespace":"org.apache.avro.ipc","fields":[{"name":"match","type":{"type":"enum","name":"HandshakeMatch","symbols":["BOTH","CLIENT","NONE"]}},{"name":"serverProtocol","type":["null","string"]},{"name":"serverHash","type":["null",{"type":"fixed","name":"MD5","size":16}]},{"name":"meta","type":["null",{"type":"map","values":"bytes"}]}]}'
+        '{"type":"record","name":"HandshakeResponse","namespace":"org.apache.avro.ipc","fields":[{"name":"match","type":{"type":"enum","name":"HandshakeMatch","symbols":["BOTH","CLIENT","NONE"]}},{"name":"serverProtocol","type":[{"type":"null"},{"type":"string"}]},{"name":"serverHash","type":[{"type":"null"},{"type":"fixed","name":"MD5","size":16}]},{"name":"meta","type":[{"type":"null"},{"type":"map","values":{"type":"bytes"}}]}]}'
       );
     $record_examples []= new SchemaExample('{"type": "record",
  "namespace": "org.apache.avro",
@@ -326,7 +326,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                                   "name": "children"}],
                       "type": "record",
                       "name": "Node"},
-             "name": "recordField"}]}', true, '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":"string"},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
+             "name": "recordField"}]}', true, '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":{"type":"string"}},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
 
     $record_examples []= new SchemaExample('
     {"type": "record",
@@ -366,9 +366,9 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                                       "type": {"type": "array",
                                                "items": "Node"}}]}}]}
     ', true,
-    '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"intField","type":"int"},{"name":"longField","type":"long"},{"name":"stringField","type":"string"},{"name":"boolField","type":"boolean"},{"name":"floatField","type":"float"},{"name":"doubleField","type":"double"},{"name":"bytesField","type":"bytes"},{"name":"nullField","type":"null"},{"name":"arrayField","type":{"type":"array","items":"double"}},{"name":"mapField","type":{"type":"map","values":{"type":"record","name":"Foo","fields":[{"name":"label","type":"string"}]}}},{"name":"unionField","type":["boolean","double",{"type":"array","items":"bytes"}]},{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"fixedField","type":{"type":"fixed","name":"MD5","size":16}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":"string"},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
+        '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"intField","type":{"type":"int"}},{"name":"longField","type":{"type":"long"}},{"name":"stringField","type":{"type":"string"}},{"name":"boolField","type":{"type":"boolean"}},{"name":"floatField","type":{"type":"float"}},{"name":"doubleField","type":{"type":"double"}},{"name":"bytesField","type":{"type":"bytes"}},{"name":"nullField","type":{"type":"null"}},{"name":"arrayField","type":{"type":"array","items":{"type":"double"}}},{"name":"mapField","type":{"type":"map","values":{"type":"record","name":"Foo","fields":[{"name":"label","type":{"type":"string"}}]}}},{"name":"unionField","type":[{"type":"boolean"},{"type":"double"},{"type":"array","items":{"type":"bytes"}}]},{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"fixedField","type":{"type":"fixed","name":"MD5","size":16}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":{"type":"string"}},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
     $record_examples []= new SchemaExample('{"type": "record", "namespace": "org.apache.avro", "name": "Interop", "fields": [{"type": "int", "name": "intField"}, {"type": "long", "name": "longField"}, {"type": "string", "name": "stringField"}, {"type": "boolean", "name": "boolField"}, {"type": "float", "name": "floatField"}, {"type": "double", "name": "doubleField"}, {"type": "bytes", "name": "bytesField"}, {"type": "null", "name": "nullField"}, {"type": {"items": "double", "type": "array"}, "name": "arrayField"}, {"type": {"type": "map", "values": {"fields": [{"type": "string", "name": "label"}], "type": "record", "name": "Foo"}}, "name": "mapField"}, {"type": ["boolean", "double", {"items": "bytes", "type": "array"}], "name": "unionField"}, {"type": {"symbols": ["A", "B", "C"], "type": "enum", "name": "Kind"}, "name": "enumField"}, {"type": {"type": "fixed", "name": "MD5", "size": 16}, "name": "fixedField"}, {"type": {"fields": [{"type": "string", "name": "label"}, {"type": {"items": "org.apache.avro.Node", "type": "array"}, "name": "children"}], "type": "record", "name": "Node"}, "name": "recordField"}]}
-', true, '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"intField","type":"int"},{"name":"longField","type":"long"},{"name":"stringField","type":"string"},{"name":"boolField","type":"boolean"},{"name":"floatField","type":"float"},{"name":"doubleField","type":"double"},{"name":"bytesField","type":"bytes"},{"name":"nullField","type":"null"},{"name":"arrayField","type":{"type":"array","items":"double"}},{"name":"mapField","type":{"type":"map","values":{"type":"record","name":"Foo","fields":[{"name":"label","type":"string"}]}}},{"name":"unionField","type":["boolean","double",{"type":"array","items":"bytes"}]},{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"fixedField","type":{"type":"fixed","name":"MD5","size":16}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":"string"},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
+', true, '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"intField","type":{"type":"int"}},{"name":"longField","type":{"type":"long"}},{"name":"stringField","type":{"type":"string"}},{"name":"boolField","type":{"type":"boolean"}},{"name":"floatField","type":{"type":"float"}},{"name":"doubleField","type":{"type":"double"}},{"name":"bytesField","type":{"type":"bytes"}},{"name":"nullField","type":{"type":"null"}},{"name":"arrayField","type":{"type":"array","items":{"type":"double"}}},{"name":"mapField","type":{"type":"map","values":{"type":"record","name":"Foo","fields":[{"name":"label","type":{"type":"string"}}]}}},{"name":"unionField","type":[{"type":"boolean"},{"type":"double"},{"type":"array","items":{"type":"bytes"}}]},{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"fixedField","type":{"type":"fixed","name":"MD5","size":16}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":{"type":"string"}},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "ipAddr",
@@ -404,7 +404,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
      "fields":[{"name":"bar", "type":"int", "order":"ascending", "default":1}]}
 ',
                                             true,
-                                            '{"type":"record","name":"foo","doc":"doc string","fields":[{"name":"bar","type":"int","default":1,"order":"ascending"}]}');
+         '{"type":"record","name":"foo","doc":"doc string","fields":[{"name":"bar","type":{"type":"int"},"default":1,"order":"ascending"}]}');
      $record_examples []= new SchemaExample('
     {"type":"record", "name":"foo", "doc":"doc string",
      "fields":[{"name":"bar", "type":"int", "order":"bad"}]}
@@ -413,12 +413,12 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
      $record_examples []= new SchemaExample(
         '{"type":"record","name":"foo","fields":[{"name":"bar","type":["null","string"],"default":null}]}',
         true,
-        '{"type":"record","name":"foo","fields":[{"name":"bar","type":["null","string"],"default":null}]}');
+         '{"type":"record","name":"foo","fields":[{"name":"bar","type":[{"type":"null"},{"type":"string"}],"default":null}]}');
     // Don't lose the "doc" attributes of record fields.
     $record_examples []= new SchemaExample(
       '{"type":"record","name":"foo","fields":[{"name":"bar","type":["null","string"],"doc":"Bar name."}]}',
       true,
-      '{"type":"record","name":"foo","fields":[{"name":"bar","type":["null","string"],"doc":"Bar name."}]}');
+      '{"type":"record","name":"foo","fields":[{"name":"bar","type":[{"type":"null"},{"type":"string"}],"doc":"Bar name."}]}');
 
     $primitive_examples []= new SchemaExample(
         '{ "type": "bytes", "logicalType": "decimal", "precision": 4, "scale": 2 }',
@@ -437,12 +437,12 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
     $array_examples []= new SchemaExample(
     '{"type": "array", "logicalType": "foo", "items": "string", "foo": "bar"}',
         true,
-        '{"type":"array","items":"string","logicalType":"foo","foo":"bar"}'
+        '{"type":"array","items":{"type":"string"},"logicalType":"foo","foo":"bar"}'
     );
     $map_examples []= new SchemaExample(
         '{"type": "map", "logicalType": "foo", "values": "long", "foo": "bar"}',
         true,
-        '{"type":"map","values":"long","logicalType":"foo","foo":"bar"}'
+        '{"type":"map","values":{"type":"long"},"logicalType":"foo","foo":"bar"}'
     );
     $record_examples []= new SchemaExample(
         '{ "type": "record", "name": "foo", "logicalType": "bar", "fields": [], "foo": "bar" }',
