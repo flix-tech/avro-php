@@ -229,11 +229,12 @@ class DataFileTest extends \PHPUnit\Framework\TestCase
   "fields" : [
       {"name": "username", "type": "string"},
       {"name": "age", "type": "int"},
-      {"name": "verified", "type": "boolean", "default": "false"}
+      {"name": "verified", "type": "boolean", "default": false}
       ]}
 JSON;
     $data = array(array('username' => 'john', 'age' => 25, 'verified' => true),
-                  array('username' => 'ryan', 'age' => 23, 'verified' => false));
+                  array('username' => 'ryan', 'age' => 23, 'verified' => false),
+                  array('username' => 'bill', 'age' => 35));
     $dw = AvroDataIO::open_file($data_file, 'w', $writer_schema, $codec);
     foreach ($data as $datum)
     {
