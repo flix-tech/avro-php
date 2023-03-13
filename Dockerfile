@@ -1,10 +1,10 @@
-ARG PHP_VERSION=8.0
+ARG PHP_VERSION=8.2
 
 FROM php:${PHP_VERSION}-cli-alpine
 
-ARG XDEBUG_VERSION=3.1.3
-
-RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
+ARG XDEBUG_VERSION=3.2.0
+RUN apk add --update linux-headers \
+    && apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
     && apk add --no-cache --virtual .runtime-deps git libzip-dev gmp-dev \
     && docker-php-ext-install zip gmp \
     && pecl install xdebug-$XDEBUG_VERSION \
