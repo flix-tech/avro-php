@@ -434,7 +434,6 @@ class AvroDataIOReader
  * Writes Avro data to an AvroIO source using an AvroSchema
  * @package Avro
  */
-#[AllowDynamicProperties]
 class AvroDataIOWriter
 {
   /**
@@ -490,6 +489,8 @@ class AvroDataIOWriter
    * @var string compression codec
    */
   private $codec;
+
+  private $sync_marker;
 
   /**
    * @param AvroIO $io
