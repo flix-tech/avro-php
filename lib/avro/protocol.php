@@ -25,9 +25,10 @@
  * Avro library for protocols
  * @package Avro
  */
-#[AllowDynamicProperties]
 class AvroProtocol
 {
+  private $protocol;
+  private $messages;
   public $name;
   public $namespace;
   public $schemata;
