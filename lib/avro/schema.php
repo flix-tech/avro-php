@@ -57,7 +57,6 @@ class AvroSchemaParseException extends AvroException {};
 /**
  * @package Avro
  */
-#[AllowDynamicProperties]
 class AvroSchema
 {
   /**
@@ -233,6 +232,10 @@ class AvroSchema
    * @var string logicalType string attribute name
    */
   const LOGICAL_TYPE_ATTR = 'logicalType';
+
+  public $type;
+  protected $extra_attributes;
+  protected $logical_type;
 
   /**
    * @var array list of primitive schema type names
@@ -1519,11 +1522,6 @@ class AvroField extends AvroSchema
    * @var string documentation of this field
    */
   private $doc;
-
-  /**
-   * @var string logical type of this field
-   */
-  private $logical_type;
 
   /**
    * @var int precision of the logical type
