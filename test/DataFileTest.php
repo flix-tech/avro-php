@@ -30,7 +30,7 @@ class DataFileTest extends \PHPUnit\Framework\TestCase
   /**
    * @return string
    */
-  static function current_timestamp() { return strftime("%Y%m%dT%H%M%S"); }
+  static function current_timestamp() { return date("Ymd\THis"); }
 
   /**
    * @param $data_file
