@@ -74,7 +74,6 @@ class AvroProtocol
 /**
  * Class AvroProtocolMessage
  */
-#[AllowDynamicProperties]
 class AvroProtocolMessage
 {
   /**
@@ -84,6 +83,8 @@ class AvroProtocolMessage
   public $request;
 
   public $response;
+
+  private $name;
 
   /**
    * AvroProtocolMessage constructor.
