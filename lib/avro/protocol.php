@@ -25,6 +25,7 @@
  * Avro library for protocols
  * @package Avro
  */
+#[AllowDynamicProperties]
 class AvroProtocol
 {
   public $name;
@@ -72,6 +73,7 @@ class AvroProtocol
 /**
  * Class AvroProtocolMessage
  */
+#[AllowDynamicProperties]
 class AvroProtocolMessage
 {
   /**

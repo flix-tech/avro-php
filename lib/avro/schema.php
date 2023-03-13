@@ -57,6 +57,7 @@ class AvroSchemaParseException extends AvroException {};
 /**
  * @package Avro
  */
+#[AllowDynamicProperties]
 class AvroSchema
 {
   /**

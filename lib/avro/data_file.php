@@ -434,6 +434,7 @@ class AvroDataIOReader
  * Writes Avro data to an AvroIO source using an AvroSchema
  * @package Avro
  */
+#[AllowDynamicProperties]
 class AvroDataIOWriter
 {
   /**
