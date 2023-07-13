@@ -584,7 +584,7 @@ class AvroIODatumReader
       case AvroSchema::STRING_TYPE:
         return $decoder->read_string();
       case AvroSchema::BYTES_TYPE:
-        return $decoder->read_bytes();
+        return $decoder->read_bytes($writers_schema, $readers_schema, $decoder);
       case AvroSchema::ARRAY_SCHEMA:
         return $this->read_array($writers_schema, $readers_schema, $decoder);
       case AvroSchema::MAP_SCHEMA:
@@ -919,6 +919,17 @@ class AvroIOBinaryDecoder
   }
 
   /**
+   * @param $bytes
+   * @param $scale
+   * @return float|int
+   */
+  static public function bytes_to_decimal($bytes, $scale = 0)
+  {
+      $int = hexdec(bin2hex($bytes));
+      return $scale > 0 ? ($int / (10 ** $scale)) : $int;
+  }
+
+  /**
    * @var AvroIO
    */
   private $io;
@@ -996,12 +1007,20 @@ class AvroIOBinaryDecoder
    * of UTF-8 encoded character data.
    * @return string
    */
-  public function read_string() { return $this->read_bytes(); }
+  public function read_string() { return $this->read($this->read_long()); }
 
   /**
+   * For Decimal logical type spec https://avro.apache.org/docs/1.10.2/spec.pdf Section 10.1
    * @return string
    */
-  public function read_bytes() { return $this->read($this->read_long()); }
+  public function read_bytes($writers_schema, $readers_schema, $decoder)
+  {
+      $bytes = $this->read($this->read_long());
+      if ($writers_schema->logical_type() === 'decimal') {
+          return self::bytes_to_decimal($bytes, $writers_schema->extra_attributes()['scale'] ?? 0);
+      }
+      return $bytes;
+  }
 
   /**
    * @param int $len count of bytes to read
