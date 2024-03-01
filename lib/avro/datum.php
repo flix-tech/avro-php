@@ -133,7 +133,7 @@ class AvroIODatumWriter
       case AvroSchema::UNION_SCHEMA:
         return $this->write_union($writers_schema, $datum, $encoder);
       default:
-        throw new AvroException(sprintf('Uknown type: %s',
+        throw new AvroException(sprintf('Unknown type: %s',
                                         $writers_schema->type));
     }
   }
