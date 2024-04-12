@@ -416,7 +416,11 @@ class AvroSchema
       case self::BOOLEAN_TYPE:
         return is_bool($datum);
       case self::STRING_TYPE:
+        return is_string($datum);
       case self::BYTES_TYPE:
+        if ($expected_schema->logical_type() === 'decimal') {
+          return is_numeric($datum);
+        }
         return is_string($datum);
       case self::INT_TYPE:
         return (is_int($datum)

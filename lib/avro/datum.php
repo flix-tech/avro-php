@@ -117,7 +117,7 @@ class AvroIODatumWriter
       case AvroSchema::STRING_TYPE:
         return $encoder->write_string($datum);
       case AvroSchema::BYTES_TYPE:
-        return $encoder->write_bytes($datum);
+        return $encoder->write_bytes($writers_schema, $datum);
       case AvroSchema::ARRAY_SCHEMA:
         return $this->write_array($writers_schema, $datum, $encoder);
       case AvroSchema::MAP_SCHEMA:
@@ -386,13 +386,25 @@ class AvroIOBinaryEncoder
    * @param string $str
    * @uses self::write_bytes()
    */
-  function write_string($str) { $this->write_bytes($str); }
+  function write_string($str) { $this->write_bytes(null, $str); }
 
   /**
+   * @param AvroSchema|null $writers_schema
    * @param string $bytes
+   * @throws AvroException
    */
-  function write_bytes($bytes)
+  function write_bytes($writers_schema, $bytes)
   {
+    if ($writers_schema !== null && $writers_schema->logical_type() === 'decimal') {
+      $scale = $writers_schema->extra_attributes()['scale'] ?? 0;
+      $precision = $writers_schema->extra_attributes()['precision'] ?? null;
+      if ($precision === null) {
+        throw new AvroException('Decimal precision is required');
+      }
+
+      $bytes = self::decimal_to_bytes($bytes, $scale, $precision);
+    }
+
     $this->write_long(strlen($bytes));
     $this->write($bytes);
   }
@@ -401,6 +413,49 @@ class AvroIOBinaryEncoder
    * @param string $datum
    */
   function write($datum) { $this->io->write($datum); }
+
+  /**
+   * @throws AvroException
+   */
+  private static function decimal_to_bytes($decimal, int $scale, int $precision): string
+  {
+    if (!is_numeric($decimal)) {
+      throw new AvroException('Decimal must be a numeric value');
+    }
+
+    $value = $decimal * (10 ** $scale);
+    if (!is_int($value)) {
+      $value = (int)round($value);
+    }
+    if (abs($value) > (10 ** $precision - 1)) {
+      throw new AvroException('Decimal value is out of range');
+    }
+
+    $packed = pack('J', $value);
+    $significantBit = self::getMostSignificantBitAt($packed, 0);
+    $trimByte = $significantBit ? 0xff : 0x00;
+
+    $offset = 0;
+    $packedLength = strlen($packed);
+    while ($offset < $packedLength - 1) {
+      if (ord($packed[$offset]) !== $trimByte) {
+        break;
+      }
+
+      if (self::getMostSignificantBitAt($packed, $offset + 1) !== $significantBit) {
+        break;
+      }
+
+      $offset++;
+    }
+
+    return substr($packed, $offset);
+  }
+
+  private static function getMostSignificantBitAt($bytes, $offset): int
+  {
+    return ord($bytes[$offset]) & 0x80;
+  }
 }
 
 /**
@@ -925,8 +980,10 @@ class AvroIOBinaryDecoder
    */
   static public function bytes_to_decimal($bytes, $scale = 0)
   {
-      $int = hexdec(bin2hex($bytes));
-      return $scale > 0 ? ($int / (10 ** $scale)) : $int;
+    $mostSignificantBit = ord($bytes[0]) & 0x80;
+    $padded = str_pad($bytes, 8, $mostSignificantBit ? "\xff" : "\x00", STR_PAD_LEFT);
+    $int = unpack('J', $padded)[1];
+    return $scale > 0 ? ($int / (10 ** $scale)) : $int;
   }
 
   /**
