@@ -1226,12 +1226,27 @@ class AvroEnumSchema extends AvroNamedSchema
   }
 
   /**
+   * @return mixed the default value of this field
+   */
+  public function default_value() { return $this->extra_attributes[AvroField::DEFAULT_ATTR] ?? null;  }
+
+  /**
+   * @return boolean true if the field has a default and false otherwise
+   */
+  public function has_default_value() {
+      return array_key_exists(AvroField::DEFAULT_ATTR, $this->extra_attributes) &&
+             $this->extra_attributes[AvroField::DEFAULT_ATTR] !== null;
+  }
+
+  /**
    * @return mixed
    */
   public function to_avro()
   {
     $avro = parent::to_avro();
     $avro[AvroSchema::SYMBOLS_ATTR] = $this->symbols;
+    if ($this->has_default_value())
+      $avro[AvroField::DEFAULT_ATTR] = $this->default_value();
     return $avro;
   }
 }
