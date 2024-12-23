@@ -572,6 +572,29 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
     $this->assertEquals($schema->doc(), "AB is freaky.");
   }
 
+  function test_enum_default()
+  {
+    $json = '{"type": "enum", "name": "blood_types", "symbols": ["A", "AB", "B", "O"]}';
+    $schema = AvroSchema::parse($json);
+
+    $this->assertEquals(null, $schema->default_value());
+    $this->assertEquals(false, $schema->has_default_value());
+
+
+    $json = '{"type": "enum", "name": "blood_types", "default": "AB", "symbols": ["A", "AB", "B", "O"]}';
+    $schema = AvroSchema::parse($json);
+
+    $this->assertEquals([
+      'type' => 'enum',
+      'name' => 'blood_types',
+      'default' => 'AB',
+      'symbols' => ["A", "AB", "B", "O"],
+    ], $schema->to_avro());
+
+    $this->assertEquals('AB', $schema->default_value());
+    $this->assertEquals(true, $schema->has_default_value());
+  }
+
   function test_logical_type()
   {
     $json = '{ "type": "bytes", "logicalType": "decimal", "precision": 4, "scale": 2 }';
