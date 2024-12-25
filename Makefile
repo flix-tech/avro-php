@@ -1,13 +1,13 @@
-# no buildin rules and variables
+# no builtin rules and variables
 MAKEFLAGS =+ -rR --warn-undefined-variables
 
 .PHONY: composer-install composer-update examples docker run
 
 COMPOSER ?= bin/composer.phar
-COMPOSER_VERSION ?= 2.5.4
+COMPOSER_VERSION ?= 2.8.4
 PHP ?= bin/php
-PHP_VERSION ?= 8.2
-XDEBUG_VERSION ?= 3.2.0
+PHP_VERSION ?= 8.3
+XDEBUG_VERSION ?= 3.4.0
 
 export
 
@@ -28,7 +28,12 @@ composer-update:
 phpunit:
 	@mkdir -p build/tmp build/share/test/schemas build/build/interop/data
 	@chmod -R a+w build
-	PHP_VERSION=$(PHP_VERSION) $(PHP) vendor/bin/phpunit --coverage-text test/AllTests.php
+	PHP_VERSION=$(PHP_VERSION) $(PHP) vendor/bin/phpunit
+
+coverage:
+	@mkdir -p build/tmp build/share/test/schemas build/build/interop/data
+	@chmod -R a+w build
+	PHP_VERSION=$(PHP_VERSION) $(PHP) -d xdebug.mode=coverage vendor/bin/phpunit --coverage-text
 
 run:
 	PHP_VERSION=$(PHP_VERSION) $(PHP) $(ARGS)
