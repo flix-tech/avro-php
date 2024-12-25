@@ -2,20 +2,17 @@
 
 <phpunit
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/8.5/phpunit.xsd"
+        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/10.5/phpunit.xsd"
         colors="true"
 >
-
-    <filter>
-        <whitelist processUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">lib/</directory>
-        </whitelist>
-    </filter>
-
+    <source>
+        <include>
+            <directory>lib</directory>
+        </include>
+    </source>
     <testsuites>
         <testsuite name="unit">
             <directory>test</directory>
         </testsuite>
     </testsuites>
-
 </phpunit>

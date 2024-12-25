@@ -1,0 +1,128 @@
+name: avro-php
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+jobs:
+  build-source:
+    runs-on: ubuntu-22.04
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v4
+      -
+        name: Install phars
+        run: |
+          make install-phars
+      -
+        name: Upload source directory
+        uses: actions/upload-artifact@v4
+        with:
+          name: source
+          include-hidden-files: true
+          path: .
+  php-xdebug-docker:
+    needs:
+      - build-source
+    strategy:
+      matrix:
+        php:
+          -
+            version: '8.1'
+            xdebug: '3.4.0'
+          -
+            version: '8.2'
+            xdebug: '3.4.0'
+          -
+            version: '8.3'
+            xdebug: '3.4.0'
+          -
+            version: '8.4'
+            xdebug: '3.4.0'
+    runs-on: ubuntu-22.04
+    steps:
+      -
+        name: Download sources
+        uses: actions/download-artifact@v4
+        with:
+          name: source
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          load: true
+          tags: avro-php:${{ matrix.php.version }}
+          build-args: |
+            PHP_VERSION=${{ matrix.php.version }}
+            XDEBUG_VERSION=${{ matrix.php.xdebug }}
+      -
+        name: Inspect docker image
+        run: |
+          docker image inspect avro-php:${{ matrix.php.version }}
+      -
+        name: Save docker image
+        run: |
+          docker save avro-php:${{ matrix.php.version }} -o php-avro-serde-${{ matrix.php.version }}.tgz
+      -
+        name: Upload docker image
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-avro-serde-${{ matrix.php.version }}
+          path: php-avro-serde-${{ matrix.php.version }}.tgz
+  ci-checks:
+    runs-on: ubuntu-22.04
+    needs:
+      - php-xdebug-docker
+    strategy:
+      matrix:
+        php:
+          -
+            version: '8.1'
+            composer: --prefer-stable
+          -
+            version: '8.2'
+            composer: --prefer-stable
+          -
+            version: '8.3'
+            composer: --prefer-stable
+          -
+            version: '8.4'
+            composer: --prefer-stable
+    steps:
+      -
+        name: Download sources
+        uses: actions/download-artifact@v4
+        with:
+          name: source
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Download docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: php-avro-serde-${{ matrix.php.version }}
+      -
+        name: Load docker image
+        run: |
+          docker load -i php-avro-serde-${{ matrix.php.version }}.tgz
+      -
+        name: Install vendors
+        run: |
+          docker run -i --rm --net=host --sig-proxy=true --pid=host \
+            -v "${GITHUB_WORKSPACE}":"${GITHUB_WORKSPACE}" -w "${GITHUB_WORKSPACE}" avro-php:${{ matrix.php.version }} \
+            composer update --no-interaction --no-scripts --no-ansi ${{ matrix.php.composer }}
+      -
+        name: Run PHPUnit
+        run: |
+          mkdir -p build/tmp build/share/test/schemas build/build/interop/data
+          chmod -R a+w build
+          docker run -i --rm --net=host --sig-proxy=true --pid=host \
+            -v "${GITHUB_WORKSPACE}":"${GITHUB_WORKSPACE}" -w "${GITHUB_WORKSPACE}" avro-php:${{ matrix.php.version }} \
+            vendor/bin/phpunit --exclude-group integration
