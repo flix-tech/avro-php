@@ -44,6 +44,68 @@ class AvroIOTypeException extends AvroException
 }
 
 /**
+ * Zigzag implementation to encode longs
+ * https://en.wikipedia.org/wiki/Variable-length_quantity#Zigzag_encoding
+ *
+ * @package Avro
+ */
+class Zigzag {
+
+  const BYTE_SIZE = 8;
+  const PLATFORM_BITS = PHP_INT_SIZE * self::BYTE_SIZE;
+
+  /**
+   * Implementation of unsigned shift right as PHP does not have the `>>>` operator
+   *
+   * @param  int  $n
+   * @param  int  $x
+   *
+   * @return int
+   */
+  public static function unsigned_right_shift(int $n, int $x): int
+  {
+    return ($n >> $x) ^ (($n >> (self::PLATFORM_BITS -1)) << (self::PLATFORM_BITS - $x));
+  }
+
+  /**
+   * @param int|string $n
+   * @return string long $n encoded as bytes
+   * @internal This relies on 64-bit PHP.
+   */
+  public static function encode_long($n): string
+  {
+    $n = (int) $n;
+    $n = ($n << 1) ^ ($n >> 63);
+    $str = '';
+    if (($n & ~0x7F) != 0) {
+      $str .= chr(($n | 0x80) & 0xFF);
+      $n = self::unsigned_right_shift($n, 7);
+
+      while ($n > 0x7F) {
+        $str .= chr(($n | 0x80) & 0xFF);
+        $n = self::unsigned_right_shift($n, 7);
+      }
+    }
+
+    $str .= chr($n);
+    return $str;
+  }
+
+  public static function decode_long(array $bytes): int {
+    $b = array_shift($bytes);
+    $n = $b & 0x7f;
+    $shift = 7;
+    while (0 != ($b & 0x80))
+    {
+      $b = array_shift($bytes);
+      $n |= (($b & 0x7f) << $shift);
+      $shift += 7;
+    }
+    return self::unsigned_right_shift($n,  1) ^ -($n & 1);
+  }
+}
+
+/**
  * Exceptions arising from incompatibility between
  * reader and writer schemas.
  *
@@ -304,18 +366,9 @@ class AvroIOBinaryEncoder
    * @return string long $n encoded as bytes
    * @internal This relies on 64-bit PHP.
    */
-  static public function encode_long($n)
+  public static function encode_long($n): string
   {
-    $n = (int) $n;
-    $n = ($n << 1) ^ ($n >> 63);
-    $str = '';
-    while (0 != ($n & ~0x7F))
-    {
-      $str .= chr(($n & 0x7F) | 0x80);
-      $n >>= 7;
-    }
-    $str .= chr($n);
-    return $str;
+    return Zigzag::encode_long($n);
   }
 
   /**
@@ -931,16 +984,7 @@ class AvroIOBinaryDecoder
    */
   public static function decode_long_from_array($bytes)
   {
-    $b = array_shift($bytes);
-    $n = $b & 0x7f;
-    $shift = 7;
-    while (0 != ($b & 0x80))
-    {
-      $b = array_shift($bytes);
-      $n |= (($b & 0x7f) << $shift);
-      $shift += 7;
-    }
-    return (($n >> 1) ^ -($n & 1));
+    return Zigzag::decode_long($bytes);
   }
 
   /**
