@@ -52,6 +52,37 @@ class DatumIOTest extends \PHPUnit\Framework\TestCase
   }
 
   /**
+   * @dataProvider zigzag_unsigned_right_shift_provider
+   */
+  function test_zigzag_unsigned_right_shift(int $expected, int $n, int $x) {
+    $this->assertEquals($expected, Zigzag::unsigned_right_shift($n, $x));
+  }
+
+  public static function zigzag_unsigned_right_shift_provider(): array {
+    return [
+      [4611686018427387902, -8, 2],
+      [2, 8, 2],
+      [144115188075855871, -2, 7],
+      [1125899906842623, 144115188075855871, 7],
+      [8796093022207, 1125899906842623, 7],
+      [68719476735, 8796093022207, 7],
+      [536870911, 68719476735, 7],
+      [4194303, 536870911, 7],
+      [32767, 4194303, 7],
+      [255, 32767, 7],
+      [1, 255, 7],
+      [144115188059078656, -2147483648, 7],
+      [1125899906711552, 144115188059078656, 7],
+      [8796093021184, 1125899906711552, 7],
+      [68719476728, 8796093021184, 7],
+      [536870911, 68719476728, 7],
+      [4194303, 536870911, 7],
+      [32767, 4194303, 7],
+      [255, 32767, 7],
+    ];
+  }
+
+  /**
    * @return array
    */
   function data_provider()
@@ -67,11 +98,21 @@ class DatumIOTest extends \PHPUnit\Framework\TestCase
                  array('"int"', 1, "\002"),
                  array('"int"', 2147483647, "\xFE\xFF\xFF\xFF\x0F"),
 
-                 // array('"long"', (int) -9223372036854775808, "\001"),
+                 array('"long"', (int) -9223372036854775808, "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x01"),
+                 array('"long"', -(1<<62), "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x7F"),
+                 array('"long"', -4294967295, "\xFD\xFF\xFF\xFF\x1F"),
+                 array('"long"', -10, "\x13"),
+                 array('"long"', -3, "\005"),
+                 array('"long"', -2, "\003"),
                  array('"long"', -1, "\001"),
                  array('"long"',  0, "\000"),
                  array('"long"',  1, "\002"),
-                 // array('"long"', 9223372036854775807, "\002")
+                 array('"long"',  2, "\004"),
+                 array('"long"',  3, "\006"),
+                 array('"long"', 10, "\x14"),
+                 array('"long"', 4294967295, "\xFE\xFF\xFF\xFF\x1F"),
+                 array('"long"', 1<<62, "\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01"),
+                 array('"long"', 9223372036854775807, "\xFE\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x01"),
 
                  array('"float"', (float) -10.0, "\000\000 \301"),
                  array('"float"', (float)  -1.0, "\000\000\200\277"),
