@@ -358,7 +358,7 @@ class AvroIOBinaryEncoder
    */
   static function double_to_long_bits($double)
   {
-    return pack('d', (double) $double);
+    return pack('d', (float) $double);
   }
 
   /**
@@ -1014,7 +1014,7 @@ class AvroIOBinaryDecoder
   static public function long_bits_to_double($bits)
   {
     $double = unpack('d', $bits);
-    return (double) $double[1];
+    return (float) $double[1];
   }
 
   /**
@@ -1060,7 +1060,7 @@ class AvroIOBinaryDecoder
    */
   public function read_boolean()
   {
-    return (boolean) (1 == ord($this->next_byte()));
+    return (bool) (1 == ord($this->next_byte()));
   }
 
   /**
