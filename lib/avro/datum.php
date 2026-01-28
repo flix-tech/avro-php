@@ -76,19 +76,24 @@ class Zigzag {
   {
     $n = (int) $n;
     $n = ($n << 1) ^ ($n >> 63);
-    $str = '';
+
+    if ($n >= 0 && $n < 0x80) {
+      return chr($n);
+    }
+
+    $buf = [];
     if (($n & ~0x7F) != 0) {
-      $str .= chr(($n | 0x80) & 0xFF);
-      $n = self::unsigned_right_shift($n, 7);
+      $buf []= ($n | 0x80) & 0xFF;
+      $n = ($n >> 7) ^ (($n >> 63) << 57); // unsigned shift right ($n >>> 7)
 
       while ($n > 0x7F) {
-        $str .= chr(($n | 0x80) & 0xFF);
-        $n = self::unsigned_right_shift($n, 7);
+        $buf []= ($n | 0x80) & 0xFF;
+        $n >>= 7; // $n is always positive here
       }
     }
 
-    $str .= chr($n);
-    return $str;
+    $buf []= $n;
+    return pack("C*", ...$buf);
   }
 
   public static function decode_long(array $bytes): int {
