@@ -393,7 +393,7 @@ class AvroSchema
                                                    $type));
     }
     elseif (self::is_primitive_type($avro))
-      return new AvroPrimitiveSchema($avro, null, [], true);
+      return new AvroPrimitiveSchema($avro, null, [], false);
     else
       throw new AvroSchemaParseException(
         sprintf('%s is not a schema we know about.',
@@ -1600,7 +1600,7 @@ class AvroField extends AvroSchema
       ? $this->type->qualified_name() : $this->type->to_avro();
 
     if ($this->has_default)
-      $avro[AvroField::DEFAULT_ATTR] = $this->default;
+      $avro[AvroField::DEFAULT_ATTR] = $this->serialize_default_value($this->default, $this->type);
 
     if ($this->order)
       $avro[AvroField::ORDER_ATTR] = $this->order;
@@ -1618,6 +1618,73 @@ class AvroField extends AvroSchema
       $avro[AvroField::SCALE_ATTR] = $this->scale;
 
     return $avro;
+  }
+
+  /**
+   * Converts default value so that map/record serialize as JSON {} not [].
+   *
+   * Problem: PHP json_encode([]) produces "[]", but Avro expects "{}" for empty map/record.
+   * Solution: Convert PHP arrays to stdClass for map/record types.
+   *
+   * @param mixed $value
+   * @param AvroSchema $schema
+   * @return mixed
+   */
+  private function serialize_default_value($value, AvroSchema $schema)
+  {
+    if (!is_array($value))
+      return $value;
+
+    $type = $schema->type();
+
+    // map/record: convert to stdClass (JSON object)
+    if ($type === AvroSchema::MAP_SCHEMA)
+      return $this->array_to_object($value, $schema->values());
+
+    if ($type === AvroSchema::RECORD_SCHEMA || $type === AvroSchema::ERROR_SCHEMA)
+      return $this->record_to_object($value, $schema);
+
+    // array: keep as array, but process items recursively
+    if ($type === AvroSchema::ARRAY_SCHEMA)
+      return array_map(fn($item) => $this->serialize_default_value($item, $schema->items()), $value);
+
+    // union: check if empty array should be object
+    if ($schema instanceof AvroUnionSchema)
+      return $this->serialize_union_default($value, $schema);
+
+    return $value;
+  }
+
+  private function array_to_object(array $value, AvroSchema $items_schema): \stdClass
+  {
+    $obj = new \stdClass();
+    foreach ($value as $k => $v)
+      $obj->$k = $this->serialize_default_value($v, $items_schema);
+    return $obj;
+  }
+
+  private function record_to_object(array $value, AvroSchema $schema): \stdClass
+  {
+    $obj = new \stdClass();
+    $fields = $schema->fields_hash();
+    foreach ($value as $k => $v)
+      $obj->$k = isset($fields[$k])
+        ? $this->serialize_default_value($v, $fields[$k]->type)
+        : $v;
+    return $obj;
+  }
+
+  private function serialize_union_default(array $value, AvroUnionSchema $schema)
+  {
+    if (!empty($value))
+      return $value;
+
+    // empty array + union contains map/record = convert to object
+    foreach ($schema->schemas() as $branch)
+      if ($branch->type() === AvroSchema::MAP_SCHEMA || $branch->type() === AvroSchema::RECORD_SCHEMA)
+        return (object) $value;
+
+    return $value;
   }
 
   /**

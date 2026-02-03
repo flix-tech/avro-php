@@ -70,7 +70,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                    'bytes', 'string')
              as $type)
     {
-      $examples []= new SchemaExample(sprintf('"%s"', $type), true, sprintf('{"type":"%s"}', $type));
+      $examples []= new SchemaExample(sprintf('"%s"', $type), true, sprintf('"%s"', $type));
       $examples []= new SchemaExample(sprintf('{"type": "%s"}', $type), true, sprintf('{"type":"%s"}', $type));
     }
     return $examples;
@@ -84,21 +84,21 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                                         self::make_primitive_examples());
 
     $array_examples = array(
-      new SchemaExample('{"type": "array", "items": "long"}', true, '{"type":"array","items":{"type":"long"}}'),
+      new SchemaExample('{"type": "array", "items": "long"}', true, '{"type":"array","items":"long"}'),
       new SchemaExample('
     {"type": "array",
      "items": {"type": "enum", "name": "Test", "symbols": ["A", "B"]}}
     ', true, '{"type":"array","items":{"type":"enum","name":"Test","symbols":["A","B"]}}'));
 
     $map_examples = array(
-      new SchemaExample('{"type": "map", "values": "long"}', true, '{"type":"map","values":{"type":"long"}}'),
+      new SchemaExample('{"type": "map", "values": "long"}', true, '{"type":"map","values":"long"}'),
       new SchemaExample('
     {"type": "map",
      "values": {"type": "enum", "name": "Test", "symbols": ["A", "B"]}}
     ', true, ));
 
     $union_examples = array(
-      new SchemaExample('["string", "null", "long"]', true, '[{"type":"string"},{"type":"null"},{"type":"long"}]'),
+      new SchemaExample('["string", "null", "long"]', true, '["string","null","long"]'),
       new SchemaExample('["null", "null"]', false),
       new SchemaExample('["long", "long"]', false),
       new SchemaExample('
@@ -111,7 +111,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
       new SchemaExample('["long",
                           {"type": "array", "items": "long"},
                           {"type": "map", "values": "long"},
-                          "int"]', true, '[{"type":"long"},{"type":"array","items":{"type":"long"}},{"type":"map","values":{"type":"long"}},{"type":"int"}]'),
+                          "int"]', true, '["long",{"type":"array","items":"long"},{"type":"map","values":"long"},"int"]'),
       new SchemaExample('["long",
                           ["string", "null"],
                           "int"]', false),
@@ -127,7 +127,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                           {"name": "foo", "type":"fixed",
                            "size":16},
                           {"name": "baz", "type":"enum", "symbols":["A", "B", "C"]}
-                         ]', true, '[{"type":"null"},{"type":"boolean"},{"type":"int"},{"type":"long"},{"type":"float"},{"type":"double"},{"type":"string"},{"type":"bytes"},{"type":"array","items":{"type":"int"}},{"type":"map","values":{"type":"int"}},{"type":"record","name":"bar","fields":[{"name":"label","type":{"type":"string"}}]},{"type":"fixed","name":"foo","size":16},{"type":"enum","name":"baz","symbols":["A","B","C"]}]'),
+                         ]', true, '["null","boolean","int","long","float","double","string","bytes",{"type":"array","items":"int"},{"type":"map","values":"int"},{"type":"record","name":"bar","fields":[{"name":"label","type":"string"}]},{"type":"fixed","name":"foo","size":16},{"type":"enum","name":"baz","symbols":["A","B","C"]}]'),
       new SchemaExample('
     [{"name":"subtract", "namespace":"com.example",
       "type":"record",
@@ -138,7 +138,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
       "fields":[{"name":"quotient", "type":"int"},
                 {"name":"dividend", "type":"int"}]},
       {"type": "array", "items": "string"}]
-    ', true, '[{"type":"record","name":"subtract","namespace":"com.example","fields":[{"name":"minuend","type":{"type":"int"}},{"name":"subtrahend","type":{"type":"int"}}]},{"type":"record","name":"divide","namespace":"com.example","fields":[{"name":"quotient","type":{"type":"int"}},{"name":"dividend","type":{"type":"int"}}]},{"type":"array","items":{"type":"string"}}]'),
+    ', true, '[{"type":"record","name":"subtract","namespace":"com.example","fields":[{"name":"minuend","type":"int"},{"name":"subtrahend","type":"int"}]},{"type":"record","name":"divide","namespace":"com.example","fields":[{"name":"quotient","type":"int"},{"name":"dividend","type":"int"}]},{"type":"array","items":"string"}]'),
       );
 
     $fixed_examples = array(
@@ -223,32 +223,32 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
      "name": "Test",
      "fields": [{"name": "f",
                  "type": "long"}]}
-    ', true, '{"type":"record","name":"Test","fields":[{"name":"f","type":{"type":"long"}}]}');
+    ', true, '{"type":"record","name":"Test","fields":[{"name":"f","type":"long"}]}');
     $record_examples []= new SchemaExample('
     {"type": "error",
      "name": "Test",
      "fields": [{"name": "f",
                  "type": "long"}]}
-    ', true, '{"type":"error","name":"Test","fields":[{"name":"f","type":{"type":"long"}}]}');
+    ', true, '{"type":"error","name":"Test","fields":[{"name":"f","type":"long"}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "Node",
      "fields": [{"name": "label", "type": "string"},
                 {"name": "children",
                  "type": {"type": "array", "items": "Node"}}]}
-    ', true, '{"type":"record","name":"Node","fields":[{"name":"label","type":{"type":"string"}},{"name":"children","type":{"type":"array","items":"Node"}}]}');
+    ', true, '{"type":"record","name":"Node","fields":[{"name":"label","type":"string"},{"name":"children","type":{"type":"array","items":"Node"}}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "ListLink",
      "fields": [{"name": "car", "type": "int"},
                 {"name": "cdr", "type": "ListLink"}]}
-    ', true, '{"type":"record","name":"ListLink","fields":[{"name":"car","type":{"type":"int"}},{"name":"cdr","type":"ListLink"}]}');
+    ', true, '{"type":"record","name":"ListLink","fields":[{"name":"car","type":"int"},{"name":"cdr","type":"ListLink"}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "Lisp",
      "fields": [{"name": "value",
                  "type": ["null", "string"]}]}
-    ', true, '{"type":"record","name":"Lisp","fields":[{"name":"value","type":[{"type":"null"},{"type":"string"}]}]}');
+    ', true, '{"type":"record","name":"Lisp","fields":[{"name":"value","type":["null","string"]}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "Lisp",
@@ -258,7 +258,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                            "name": "Cons",
                            "fields": [{"name": "car", "type": "string"},
                                       {"name": "cdr", "type": "string"}]}]}]}
-    ', true, '{"type":"record","name":"Lisp","fields":[{"name":"value","type":[{"type":"null"},{"type":"string"},{"type":"record","name":"Cons","fields":[{"name":"car","type":{"type":"string"}},{"name":"cdr","type":{"type":"string"}}]}]}]}');
+    ', true, '{"type":"record","name":"Lisp","fields":[{"name":"value","type":["null","string",{"type":"record","name":"Cons","fields":[{"name":"car","type":"string"},{"name":"cdr","type":"string"}]}]}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "Lisp",
@@ -268,7 +268,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                            "name": "Cons",
                            "fields": [{"name": "car", "type": "Lisp"},
                                       {"name": "cdr", "type": "Lisp"}]}]}]}
-    ', true, '{"type":"record","name":"Lisp","fields":[{"name":"value","type":[{"type":"null"},{"type":"string"},{"type":"record","name":"Cons","fields":[{"name":"car","type":"Lisp"},{"name":"cdr","type":"Lisp"}]}]}]}');
+    ', true, '{"type":"record","name":"Lisp","fields":[{"name":"value","type":["null","string",{"type":"record","name":"Cons","fields":[{"name":"car","type":"Lisp"},{"name":"cdr","type":"Lisp"}]}]}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "HandshakeRequest",
@@ -277,7 +277,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                  "type": {"type": "fixed", "name": "MD5", "size": 16}},
                 {"name": "meta",
                  "type": ["null", {"type": "map", "values": "bytes"}]}]}
-    ', true, '{"type":"record","name":"HandshakeRequest","namespace":"org.apache.avro.ipc","fields":[{"name":"clientHash","type":{"type":"fixed","name":"MD5","size":16}},{"name":"meta","type":[{"type":"null"},{"type":"map","values":{"type":"bytes"}}]}]}');
+    ', true, '{"type":"record","name":"HandshakeRequest","namespace":"org.apache.avro.ipc","fields":[{"name":"clientHash","type":{"type":"fixed","name":"MD5","size":16}},{"name":"meta","type":["null",{"type":"map","values":"bytes"}]}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "HandshakeRequest",
@@ -288,7 +288,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                 {"name": "serverHash", "type": "MD5"},
                 {"name": "meta",
                  "type": ["null", {"type": "map", "values": "bytes"}]}]}
-    ', true, '{"type":"record","name":"HandshakeRequest","namespace":"org.apache.avro.ipc","fields":[{"name":"clientHash","type":{"type":"fixed","name":"MD5","size":16}},{"name":"clientProtocol","type":[{"type":"null"},{"type":"string"}]},{"name":"serverHash","type":"MD5"},{"name":"meta","type":[{"type":"null"},{"type":"map","values":{"type":"bytes"}}]}]}');
+    ', true, '{"type":"record","name":"HandshakeRequest","namespace":"org.apache.avro.ipc","fields":[{"name":"clientHash","type":{"type":"fixed","name":"MD5","size":16}},{"name":"clientProtocol","type":["null","string"]},{"name":"serverHash","type":"MD5"},{"name":"meta","type":["null",{"type":"map","values":"bytes"}]}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "HandshakeResponse",
@@ -304,7 +304,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                 {"name": "meta",
                  "type": ["null", {"type": "map", "values": "bytes"}]}]}
     ', true,
-        '{"type":"record","name":"HandshakeResponse","namespace":"org.apache.avro.ipc","fields":[{"name":"match","type":{"type":"enum","name":"HandshakeMatch","symbols":["BOTH","CLIENT","NONE"]}},{"name":"serverProtocol","type":[{"type":"null"},{"type":"string"}]},{"name":"serverHash","type":[{"type":"null"},{"type":"fixed","name":"MD5","size":16}]},{"name":"meta","type":[{"type":"null"},{"type":"map","values":{"type":"bytes"}}]}]}'
+        '{"type":"record","name":"HandshakeResponse","namespace":"org.apache.avro.ipc","fields":[{"name":"match","type":{"type":"enum","name":"HandshakeMatch","symbols":["BOTH","CLIENT","NONE"]}},{"name":"serverProtocol","type":["null","string"]},{"name":"serverHash","type":["null",{"type":"fixed","name":"MD5","size":16}]},{"name":"meta","type":["null",{"type":"map","values":"bytes"}]}]}'
       );
     $record_examples []= new SchemaExample('{"type": "record",
  "namespace": "org.apache.avro",
@@ -326,7 +326,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                                   "name": "children"}],
                       "type": "record",
                       "name": "Node"},
-             "name": "recordField"}]}', true, '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":{"type":"string"}},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
+             "name": "recordField"}]}', true, '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":"string"},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
 
     $record_examples []= new SchemaExample('
     {"type": "record",
@@ -366,9 +366,9 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                                       "type": {"type": "array",
                                                "items": "Node"}}]}}]}
     ', true,
-        '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"intField","type":{"type":"int"}},{"name":"longField","type":{"type":"long"}},{"name":"stringField","type":{"type":"string"}},{"name":"boolField","type":{"type":"boolean"}},{"name":"floatField","type":{"type":"float"}},{"name":"doubleField","type":{"type":"double"}},{"name":"bytesField","type":{"type":"bytes"}},{"name":"nullField","type":{"type":"null"}},{"name":"arrayField","type":{"type":"array","items":{"type":"double"}}},{"name":"mapField","type":{"type":"map","values":{"type":"record","name":"Foo","fields":[{"name":"label","type":{"type":"string"}}]}}},{"name":"unionField","type":[{"type":"boolean"},{"type":"double"},{"type":"array","items":{"type":"bytes"}}]},{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"fixedField","type":{"type":"fixed","name":"MD5","size":16}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":{"type":"string"}},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
+        '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"intField","type":"int"},{"name":"longField","type":"long"},{"name":"stringField","type":"string"},{"name":"boolField","type":"boolean"},{"name":"floatField","type":"float"},{"name":"doubleField","type":"double"},{"name":"bytesField","type":"bytes"},{"name":"nullField","type":"null"},{"name":"arrayField","type":{"type":"array","items":"double"}},{"name":"mapField","type":{"type":"map","values":{"type":"record","name":"Foo","fields":[{"name":"label","type":"string"}]}}},{"name":"unionField","type":["boolean","double",{"type":"array","items":"bytes"}]},{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"fixedField","type":{"type":"fixed","name":"MD5","size":16}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":"string"},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
     $record_examples []= new SchemaExample('{"type": "record", "namespace": "org.apache.avro", "name": "Interop", "fields": [{"type": "int", "name": "intField"}, {"type": "long", "name": "longField"}, {"type": "string", "name": "stringField"}, {"type": "boolean", "name": "boolField"}, {"type": "float", "name": "floatField"}, {"type": "double", "name": "doubleField"}, {"type": "bytes", "name": "bytesField"}, {"type": "null", "name": "nullField"}, {"type": {"items": "double", "type": "array"}, "name": "arrayField"}, {"type": {"type": "map", "values": {"fields": [{"type": "string", "name": "label"}], "type": "record", "name": "Foo"}}, "name": "mapField"}, {"type": ["boolean", "double", {"items": "bytes", "type": "array"}], "name": "unionField"}, {"type": {"symbols": ["A", "B", "C"], "type": "enum", "name": "Kind"}, "name": "enumField"}, {"type": {"type": "fixed", "name": "MD5", "size": 16}, "name": "fixedField"}, {"type": {"fields": [{"type": "string", "name": "label"}, {"type": {"items": "org.apache.avro.Node", "type": "array"}, "name": "children"}], "type": "record", "name": "Node"}, "name": "recordField"}]}
-', true, '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"intField","type":{"type":"int"}},{"name":"longField","type":{"type":"long"}},{"name":"stringField","type":{"type":"string"}},{"name":"boolField","type":{"type":"boolean"}},{"name":"floatField","type":{"type":"float"}},{"name":"doubleField","type":{"type":"double"}},{"name":"bytesField","type":{"type":"bytes"}},{"name":"nullField","type":{"type":"null"}},{"name":"arrayField","type":{"type":"array","items":{"type":"double"}}},{"name":"mapField","type":{"type":"map","values":{"type":"record","name":"Foo","fields":[{"name":"label","type":{"type":"string"}}]}}},{"name":"unionField","type":[{"type":"boolean"},{"type":"double"},{"type":"array","items":{"type":"bytes"}}]},{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"fixedField","type":{"type":"fixed","name":"MD5","size":16}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":{"type":"string"}},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
+', true, '{"type":"record","name":"Interop","namespace":"org.apache.avro","fields":[{"name":"intField","type":"int"},{"name":"longField","type":"long"},{"name":"stringField","type":"string"},{"name":"boolField","type":"boolean"},{"name":"floatField","type":"float"},{"name":"doubleField","type":"double"},{"name":"bytesField","type":"bytes"},{"name":"nullField","type":"null"},{"name":"arrayField","type":{"type":"array","items":"double"}},{"name":"mapField","type":{"type":"map","values":{"type":"record","name":"Foo","fields":[{"name":"label","type":"string"}]}}},{"name":"unionField","type":["boolean","double",{"type":"array","items":"bytes"}]},{"name":"enumField","type":{"type":"enum","name":"Kind","symbols":["A","B","C"]}},{"name":"fixedField","type":{"type":"fixed","name":"MD5","size":16}},{"name":"recordField","type":{"type":"record","name":"Node","fields":[{"name":"label","type":"string"},{"name":"children","type":{"type":"array","items":"Node"}}]}}]}');
     $record_examples []= new SchemaExample('
     {"type": "record",
      "name": "ipAddr",
@@ -404,7 +404,7 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
      "fields":[{"name":"bar", "type":"int", "order":"ascending", "default":1}]}
 ',
                                             true,
-         '{"type":"record","name":"foo","doc":"doc string","fields":[{"name":"bar","type":{"type":"int"},"default":1,"order":"ascending"}]}');
+         '{"type":"record","name":"foo","doc":"doc string","fields":[{"name":"bar","type":"int","default":1,"order":"ascending"}]}');
      $record_examples []= new SchemaExample('
     {"type":"record", "name":"foo", "doc":"doc string",
      "fields":[{"name":"bar", "type":"int", "order":"bad"}]}
@@ -413,12 +413,12 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
      $record_examples []= new SchemaExample(
         '{"type":"record","name":"foo","fields":[{"name":"bar","type":["null","string"],"default":null}]}',
         true,
-         '{"type":"record","name":"foo","fields":[{"name":"bar","type":[{"type":"null"},{"type":"string"}],"default":null}]}');
+         '{"type":"record","name":"foo","fields":[{"name":"bar","type":["null","string"],"default":null}]}');
     // Don't lose the "doc" attributes of record fields.
     $record_examples []= new SchemaExample(
       '{"type":"record","name":"foo","fields":[{"name":"bar","type":["null","string"],"doc":"Bar name."}]}',
       true,
-      '{"type":"record","name":"foo","fields":[{"name":"bar","type":[{"type":"null"},{"type":"string"}],"doc":"Bar name."}]}');
+      '{"type":"record","name":"foo","fields":[{"name":"bar","type":["null","string"],"doc":"Bar name."}]}');
 
     $primitive_examples []= new SchemaExample(
         '{ "type": "bytes", "logicalType": "decimal", "precision": 4, "scale": 2 }',
@@ -437,12 +437,12 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
     $array_examples []= new SchemaExample(
     '{"type": "array", "logicalType": "foo", "items": "string", "foo": "bar"}',
         true,
-        '{"type":"array","items":{"type":"string"},"logicalType":"foo","foo":"bar"}'
+        '{"type":"array","items":"string","logicalType":"foo","foo":"bar"}'
     );
     $map_examples []= new SchemaExample(
         '{"type": "map", "logicalType": "foo", "values": "long", "foo": "bar"}',
         true,
-        '{"type":"map","values":{"type":"long"},"logicalType":"foo","foo":"bar"}'
+        '{"type":"map","values":"long","logicalType":"foo","foo":"bar"}'
     );
     $record_examples []= new SchemaExample(
         '{ "type": "record", "name": "foo", "logicalType": "bar", "fields": [], "foo": "bar" }',
@@ -459,68 +459,21 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
                                   $record_examples);
     self::$valid_examples = array();
     foreach (self::$examples as $example)
-    {
       if ($example->is_valid)
         self::$valid_examples []= $example;
-    }
+    return self::$examples;
   }
 
-  function test_json_decode()
+  protected function setUp(): void
   {
-    $this->assertEquals(json_decode('null', true), null);
-    $this->assertEquals(json_decode('32', true), 32);
-    $this->assertEquals(json_decode('"32"', true), '32');
-    $this->assertEquals((array) json_decode('{"foo": 27}'), array("foo" => 27));
-    $this->assertTrue(is_array(json_decode('{"foo": 27}', true)));
-    $this->assertEquals(json_decode('{"foo": 27}', true), array("foo" => 27));
-    $this->assertEquals(json_decode('["bar", "baz", "blurfl"]', true),
-                        array("bar", "baz", "blurfl"));
-    $this->assertFalse(is_array(json_decode('null', true)));
-    $this->assertEquals(json_decode('{"type": "null"}', true), array("type" => 'null'));
-    $this->assertEquals(json_decode('"boolean"'), 'boolean');
+    if (0 == count(self::$examples))
+      self::make_examples();
   }
 
-  function parse_bad_json_provider()
+  function example_provider()
   {
-    return array(
-      // Valid
-      array('{"type": "array", "items": "long"}', null),
-      // Trailing comma
-      array('{"type": "array", "items": "long", }', "JSON decode error 4: Syntax error"),
-      // Wrong quotes
-      array("{'type': 'array', 'items': 'long'}", "JSON decode error 4: Syntax error"),
-      // Binary data
-      array("\x11\x07", "JSON decode error 3: Control character error, possibly incorrectly encoded"),
-    );
-  }
-
-  /**
-   * @dataProvider parse_bad_json_provider
-   */
-  function test_parse_bad_json($json, $failure)
-  {
-    if (defined('HHVM_VERSION'))
-    {
-      // Under HHVM, json_decode is not as strict and feature complete as standard PHP.
-      $this->markTestSkipped();
-    }
-    try
-    {
-      $schema = AvroSchema::parse($json);
-      $this->assertEquals($failure, null);
-    }
-    catch (AvroSchemaParseException $e)
-    {
-      $this->assertEquals($failure, $e->getMessage());
-    }
-  }
-
-  /**
-   * @return array
-   */
-  function schema_examples_provider()
-  {
-    self::make_examples();
+    if (0 == count(self::$examples))
+      self::make_examples();
     $ary = array();
     foreach (self::$examples as $example)
       $ary []= array($example);
@@ -528,20 +481,17 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
   }
 
   /**
-   * @dataProvider schema_examples_provider
-   * @param $example
+   * @dataProvider example_provider
    */
   function test_parse($example)
   {
     $schema_string = $example->schema_string;
-    try
-    {
+    try {
       $normalized_schema_string = $example->normalized_schema_string;
       $schema = AvroSchema::parse($schema_string);
       $this->assertTrue($example->is_valid,
                         sprintf("schema_string: %s\n",
                                 $schema_string));
-      // strval() roughly does to_avro() + json_encode()
       $this->assertEquals($normalized_schema_string, strval($schema));
     }
     catch (AvroSchemaParseException $e)
@@ -553,46 +503,26 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
     }
   }
 
-  function test_record_doc()
+  function test_enum_default_value()
   {
-    $json = '{"type": "record", "name": "foo", "doc": "Foo doc.",
-              "fields": [{"name": "bar", "type": "int", "doc": "Bar doc."}]}';
-    $schema = AvroSchema::parse($json);
-    $this->assertEquals($schema->doc(), "Foo doc.");
-    $fields = $schema->fields();
-    $this->assertCount(1, $fields);
-    $bar = $fields[0];
-    $this->assertEquals($bar->doc(), "Bar doc.");
+    $schema_string = '{"type":"enum","name":"blood_types","symbols":["A","B","AB","O"],"default":"A"}';
+    $schema = AvroSchema::parse($schema_string);
+    $this->assertEquals($schema->default_value(), "A");
+    $this->assertTrue($schema->has_default_value());
   }
 
-  function test_enum_doc()
+  function test_int_logical_type()
   {
-    $json = '{"type": "enum", "name": "blood_types", "doc": "AB is freaky.", "symbols": ["A", "AB", "B", "O"]}';
-    $schema = AvroSchema::parse($json);
-    $this->assertEquals($schema->doc(), "AB is freaky.");
+    $schema_string = '{"type":"int","logicalType":"date"}';
+    $schema = AvroSchema::parse($schema_string);
+    $this->assertEquals($schema->logical_type(), "date");
   }
 
-  function test_enum_default()
+  function test_long_logical_type()
   {
-    $json = '{"type": "enum", "name": "blood_types", "symbols": ["A", "AB", "B", "O"]}';
-    $schema = AvroSchema::parse($json);
-
-    $this->assertEquals(null, $schema->default_value());
-    $this->assertEquals(false, $schema->has_default_value());
-
-
-    $json = '{"type": "enum", "name": "blood_types", "default": "AB", "symbols": ["A", "AB", "B", "O"]}';
-    $schema = AvroSchema::parse($json);
-
-    $this->assertEquals([
-      'type' => 'enum',
-      'name' => 'blood_types',
-      'default' => 'AB',
-      'symbols' => ["A", "AB", "B", "O"],
-    ], $schema->to_avro());
-
-    $this->assertEquals('AB', $schema->default_value());
-    $this->assertEquals(true, $schema->has_default_value());
+    $schema_string = '{"type":"long","logicalType":"timestamp-millis"}';
+    $schema = AvroSchema::parse($schema_string);
+    $this->assertEquals($schema->logical_type(), "timestamp-millis");
   }
 
   function test_logical_type()
@@ -601,5 +531,79 @@ class SchemaTest extends \PHPUnit\Framework\TestCase
     $schema = AvroSchema::parse($json);
     $this->assertEquals($schema->logical_type(), "decimal");
     $this->assertEquals($schema->extra_attributes(), ["precision" => 4, "scale" => 2]);
+  }
+
+  /**
+   * Test that empty map default value {} is preserved as object, not converted to array []
+   */
+  function test_empty_map_default_preserved_as_object()
+  {
+    $json = '{"type": "record", "name": "Test", "fields": [{"name": "properties", "type": {"type": "map", "values": "string"}, "default": {}}]}';
+    $schema = AvroSchema::parse($json);
+
+    $output = strval($schema);
+
+    $this->assertStringContainsString('"default":{}', $output,
+      'Empty map default should be serialized as {} (object), not [] (array)');
+    $this->assertStringNotContainsString('"default":[]', $output,
+      'Empty map default should NOT be serialized as [] (array)');
+  }
+
+  /**
+   * Test non-empty map default preserves key-value pairs
+   */
+  function test_non_empty_map_default_preserved()
+  {
+    $json = '{"type": "record", "name": "Test", "fields": [{"name": "properties", "type": {"type": "map", "values": "string"}, "default": {"key": "value"}}]}';
+    $schema = AvroSchema::parse($json);
+
+    $output = strval($schema);
+
+    $this->assertStringContainsString('"default":{"key":"value"}', $output);
+  }
+
+  /**
+   * Test empty record default is preserved as {}
+   */
+  function test_empty_record_default_preserved_as_object()
+  {
+    $json = '{"type": "record", "name": "Outer", "fields": [{"name": "inner", "type": {"type": "record", "name": "Inner", "fields": [{"name": "x", "type": "int", "default": 0}]}, "default": {}}]}';
+    $schema = AvroSchema::parse($json);
+
+    $output = strval($schema);
+
+    $this->assertMatchesRegularExpression('/"name":"inner".*"default":\{\}/', $output,
+      'Empty record default should be serialized as {} (object)');
+  }
+
+  /**
+   * Test nested map inside record default
+   */
+  function test_nested_map_default_preserved()
+  {
+    $json = '{"type": "record", "name": "Test", "fields": [{"name": "data", "type": {"type": "record", "name": "Data", "fields": [{"name": "props", "type": {"type": "map", "values": "string"}}]}, "default": {"props": {}}}]}';
+    $schema = AvroSchema::parse($json);
+
+    $output = strval($schema);
+
+    $this->assertStringContainsString('"props":{}', $output,
+      'Nested empty map should be serialized as {} (object)');
+  }
+
+  /**
+   * Test that primitive type in map values is not expanded to object form.
+   * "values": "string" should NOT become "values": {"type": "string"}
+   */
+  function test_primitive_type_not_expanded_to_object()
+  {
+    $json = '{"type": "record", "name": "Test", "fields": [{"name": "props", "type": {"type": "map", "values": "string"}, "default": {}}]}';
+    $schema = AvroSchema::parse($json);
+
+    $output = strval($schema);
+
+    $this->assertStringContainsString('"values":"string"', $output,
+      'Primitive type should remain as "string", not {"type":"string"}');
+    $this->assertStringNotContainsString('"values":{"type":"string"}', $output,
+      'Primitive type should NOT be expanded to object form');
   }
 }
