@@ -242,7 +242,7 @@ class AvroIODatumWriter
       $encoder->write_long($datum_count);
       foreach ($datum as $k => $v)
       {
-        $encoder->write_string($k);
+        $encoder->write_string((string) $k);
         $this->write_data($writers_schema->values(), $v, $encoder);
       }
     }

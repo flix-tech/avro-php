@@ -446,7 +446,7 @@ class AvroSchema
         if (is_array($datum))
         {
           foreach ($datum as $k => $v)
-            if (!is_string($k)
+            if ((!is_string($k) && !is_int($k))
                 || !self::is_valid_datum($expected_schema->values(), $v))
               return false;
           return true;
